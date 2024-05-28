@@ -1,4 +1,5 @@
 import tkinter as tk
+from io import BytesIO
 
 import requests
 import ttkbootstrap as ttk
@@ -18,7 +19,11 @@ class App:
 
         self.window = ttk.Window(themename="darkly")
         self.window.title("Spotify Game")
-        self.window.geometry("1800x1200")
+        self.window.geometry("2200x1600")
+
+        self.images: list = []
+
+        self.step_count = 0
 
         s = ttk.Style()
 
@@ -30,18 +35,43 @@ class App:
                                 text="Spotify Game",
                                 font="Calibri 24 bold")
 
-        start_button = ttk.Button(master=self.window, text="Start", command=lambda: self.game_step(self.start_song))
+        start_button = ttk.Button(master=self.window, text="Start",
+                                  command=lambda: self.game_step(self.start_song),
+                                  style="grid.TButton")
 
-        song_path = ttk.Label(master=self.window,
-                              text=f'Goal: get from \n\n {self.start_song["name"]} by {self.start_song["artists"][0]["name"]} -> ' +
-                              f'{self.target["name"]} by {self.target["artists"][0]["name"]}' +
-                              f'\n\n by travelling through song recommendations',
+        images_container = ttk.Frame(master=self.window)
+
+        for ind, song in enumerate((self.start_song, self.target)):
+
+            url = song["album"]["images"][0]["url"]
+            response = requests.get(url, stream=True)
+            test_im = Image.open(BytesIO(response.content)).resize((300,300))
+
+            self.images.append(ImageTk.PhotoImage(image=test_im))
+            image_label = ttk.Label(
+                master=images_container,
+                image=self.images[-1]
+            )
+
+            text_label = ttk.Label(
+                master=images_container,
+                text=f'{song["name"]} by {song["artists"][0]["name"]}'
+            )
+
+            image_label.grid(row=0, column=ind, pady=20, padx=20)
+
+            text_label.grid(row=1, column=ind, pady=20, padx=20)
+
+        description_label = ttk.Label(master=self.window,
+                              text=f'Goal: get between the following songs by travelling through song recommendations',
                               font="Calibri 16",
                               justify="center")
 
         title_label.pack(pady=25)
 
-        song_path.pack(pady=50)
+        description_label.pack(pady=50)
+
+        images_container.pack(pady=15)
 
         start_button.pack(pady=100)
 
@@ -49,7 +79,7 @@ class App:
         """
         On each choice of the player, calculates the new recommendations and populates the screen accordingly
         :param song: spotipy song dict parameter choosing the new current song
-        :return:
+        :return: None
         """
 
         self.curr_song = song
@@ -106,12 +136,10 @@ class App:
 
                 name = name[:-1]
 
-                """
-                for key, val in rec["album"].items():
-                    print(f"{key}: {val}")"""
                 # generating image for each song using PIL
                 url = rec["album"]["images"][0]["url"]
-                img = ImageTk.PhotoImage(Image.open(requests.get(url, stream=True).raw))
+                img = Image.open(requests.get(url, stream=True).raw).resize((200, 200))
+                self.images.append(ImageTk.PhotoImage(img))
 
                 rec_name = ttk.Button(master=recommendations_frame,
                                       text=f'{name} by {rec["artists"][0]["name"][:40]}',
@@ -119,17 +147,19 @@ class App:
                                       style="grid.TButton")
 
                 rec_name.grid(row=(ind // 3) * 2, column=ind % 3,
-                              padx=25, pady=25, sticky='nsew')
+                              padx=25, pady=10, sticky='nsew')
 
                 img_label = ttk.Label(master=recommendations_frame,
-                                      image=img)
+                                      image=self.images[-1])
 
                 img_label.grid(row=(ind // 3)*2 + 1, column=ind % 3,
-                               padx=25, pady=25, sticky='nsew')
+                               padx=250, pady=10, sticky='nsew')
 
             recommendations_frame.pack()
 
     def clear_window(self) -> None:
+
+        self.images = []
 
         for widget in self.window.winfo_children():
 
