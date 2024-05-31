@@ -3,8 +3,6 @@ from spotipy.oauth2 import SpotifyClientCredentials, SpotifyOAuth
 
 from spotipy_random import get_random
 
-import numpy as np
-
 from typing import Set, Dict, List, Optional
 
 import time
@@ -29,14 +27,14 @@ class SpotipyInstance:
 
             sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope,
                                                         client_id="390d1f202e0a4040b843778169ffd71d",
-                                                        client_secret="f72cb245bc3842868e034743c3c7a4f1",
+                                                        client_secret="44cb659849ac463cba01c65706eded2e",
                                                         redirect_uri="https://localhost:8888/callback"))
 
         else:
 
             sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
                                                 client_id="390d1f202e0a4040b843778169ffd71d",
-                                                client_secret="f72cb245bc3842868e034743c3c7a4f1"))
+                                                client_secret="44cb659849ac463cba01c65706eded2e"))
 
         self.sp = sp
 
@@ -57,14 +55,30 @@ class SpotipyInstance:
 
         return songs
 
-    def get_recommendations(self, song: Dict) -> List[Dict]:
+    def get_recommendations(self, songs: List[Dict]) -> List[Dict]:
 
-        return self.sp.recommendations(seed_tracks=[song["id"]])["tracks"]
+        ids = [song["id"] for song in songs]
+
+        return self.sp.recommendations(seed_tracks=ids, limit=9)["tracks"]
 
     def get_targets(self) -> tuple[Dict, Dict]:
 
-        start_song: dict = get_random(self.sp, type="track")
-        end_song: dict = get_random(self.sp, type="track")
+        start_song: dict = get_random(self.sp, type="track", market="US")
+        end_song: dict = get_random(self.sp, type="track", market="US")
+
+        """
+        while "en" not in start_song["artists"][0]["external_urls"]["spotify"]:
+        
+            time.sleep(0.2)
+
+            start_song: dict = get_random(self.sp, type="track", market="US")
+
+        while "en" not in end_song["artists"][0]["external_urls"]["spotify"]:
+        
+            time.sleep(0.2)
+
+            end_song: dict = get_random(self.sp, type="track", market="US")
+        """
 
         return start_song, end_song
 
