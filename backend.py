@@ -5,7 +5,8 @@ from spotipy_random import get_random
 
 from typing import Set, Dict, List, Optional
 
-import time
+API_ID = "YOUR SPOTIFY ID HERE"
+API_Secret = "YOUR SECRET HERE"
 
 
 def delete_track(songs: dict, track_name: str) -> None:
@@ -26,15 +27,15 @@ class SpotipyInstance:
         if user:
 
             sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope,
-                                                        client_id="390d1f202e0a4040b843778169ffd71d",
-                                                        client_secret="44cb659849ac463cba01c65706eded2e",
+                                                        client_id=API_ID,
+                                                        client_secret=API_Secret,
                                                         redirect_uri="https://localhost:8888/callback"))
 
         else:
 
             sp = spotipy.Spotify(client_credentials_manager=SpotifyClientCredentials(
-                                                client_id="390d1f202e0a4040b843778169ffd71d",
-                                                client_secret="44cb659849ac463cba01c65706eded2e"))
+                                                client_id=API_ID,
+                                                client_secret=API_Secret))
 
         self.sp = sp
 
